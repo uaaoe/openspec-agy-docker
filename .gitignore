@@ -47,3 +47,7 @@ wheels/
 
 # Docker Local State
 .docker/
+
+# OpenSpec dynamic workflows & skills generated at container runtime
+.agents/workflows/
+.agents/skills/

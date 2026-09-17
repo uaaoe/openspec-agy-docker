@@ -99,9 +99,9 @@ if [ -f "${TEMPLATE_DIR}/LICENSE" ]; then
     cp "${TEMPLATE_DIR}/LICENSE" "$TARGET_DIR/"
 fi
 
-# 3. Copy Antigravity rules and OpenSpec directories
-mkdir -p "$TARGET_DIR/.agents/rules"
-cp -r "${TEMPLATE_DIR}/.agents/rules/"* "$TARGET_DIR/.agents/rules/"
+# 3. Copy Antigravity customizations (.agents) and OpenSpec directories
+mkdir -p "$TARGET_DIR/.agents"
+cp -r "${TEMPLATE_DIR}/.agents/"* "$TARGET_DIR/.agents/"
 
 mkdir -p "$TARGET_DIR/openspec/specs" "$TARGET_DIR/openspec/changes"
 cp "${TEMPLATE_DIR}/openspec/config.yaml" "$TARGET_DIR/openspec/"

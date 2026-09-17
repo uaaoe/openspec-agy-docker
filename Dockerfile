@@ -29,8 +29,10 @@ RUN mkdir -p /etc/apt/keyrings \
 RUN curl -fsSL https://antigravity.google/cli/install.sh | bash -s -- -d /usr/local/bin \
     && chmod +x /usr/local/bin/agy 2>/dev/null || true
 
-# 4. Install OpenSpec CLI globally
-RUN npm install -g @fission-ai/openspec@latest
+# 4. Install OpenSpec CLI globally and pre-generate template structure
+RUN npm install -g @fission-ai/openspec@latest \
+    && mkdir -p /opt/openspec-template \
+    && (cd /opt/openspec-template && OPENSPEC_TELEMETRY=0 openspec init --tools antigravity)
 
 # 5. Dynamic unprivileged sandbox user creation (safe across Linux and macOS host GIDs)
 ARG UID=1000
