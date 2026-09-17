@@ -1,0 +1,26 @@
+services:
+  agy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: openspec-agy-sandbox:latest
+    container_name: agy-sandbox
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:rw
+      - ${HOME}/.gitconfig:/home/sandboxuser/.gitconfig:ro
+      - ${HOME}/.gemini:/home/sandboxuser/.gemini:rw
+    env_file:
+      - path: .env
+        required: false
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stdin_open: true
+    tty: true
+    command: ["--dangerously-skip-permissions"]

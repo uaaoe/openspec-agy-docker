@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# =============================================================================
+# create-agy-project
+#
+# Bootstrapping CLI tool to scaffold new Git projects configured with
+# Antigravity CLI and OpenSpec running inside a containerized sandbox.
+# =============================================================================
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATE_DIR="${OPENSPEC_AGY_TEMPLATE_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+
+show_usage() {
+    cat << 'EOF'
+Usage: create-agy-project <destination-directory> [options]
+
+Scaffolds a new project with a hardened, containerized Antigravity CLI and OpenSpec setup.
+
+Options:
+  --name <project-name>    Custom human-readable project title (default: folder name)
+  --no-git                 Skip initializing a new Git repository
+  -h, --help               Display this help menu
+
+Examples:
+  create-agy-project ~/Developer/my-ai-agent
+  create-agy-project ./agentic-workflow --name "Customer Service Agent"
+EOF
+}
+
+TARGET_PATH=""
+PROJECT_NAME=""
+INIT_GIT=true
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        --name)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --name requires a value." >&2
+                exit 1
+            fi
+            PROJECT_NAME="$2"
+            shift 2
+            ;;
+        --no-git)
+            INIT_GIT=false
+            shift
+            ;;
+        -*)
+            echo "Error: Unknown option $1" >&2
+            show_usage
+            exit 1
+            ;;
+        *)
+            if [[ -z "$TARGET_PATH" ]]; then
+                TARGET_PATH="$1"
+            else
+                echo "Error: Unexpected argument $1" >&2
+                show_usage
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$TARGET_PATH" ]]; then
+    echo "Error: Missing target destination path." >&2
+    show_usage
+    exit 1
+fi
+
+# Resolve absolute destination path
+mkdir -p "$TARGET_PATH"
+TARGET_DIR="$(cd "$TARGET_PATH" && pwd)"
+FOLDER_NAME="$(basename "$TARGET_DIR")"
+
+if [[ -z "$PROJECT_NAME" ]]; then
+    PROJECT_NAME="$FOLDER_NAME"
+fi
+
+echo "==> Scaffolding new Antigravity & OpenSpec project in: $TARGET_DIR"
+
+# 1. Copy container runtime files
+cp "${TEMPLATE_DIR}/Dockerfile" "$TARGET_DIR/"
+cp "${TEMPLATE_DIR}/docker-compose.yaml" "$TARGET_DIR/"
+cp "${TEMPLATE_DIR}/docker-entrypoint.sh" "$TARGET_DIR/"
+chmod +x "$TARGET_DIR/docker-entrypoint.sh"
+
+# 2. Copy configuration, template environment, Makefile, and License
+cp "${TEMPLATE_DIR}/.env.example" "$TARGET_DIR/"
+cp "${TEMPLATE_DIR}/.gitignore" "$TARGET_DIR/"
+cp "${TEMPLATE_DIR}/Makefile" "$TARGET_DIR/"
+if [ -f "${TEMPLATE_DIR}/LICENSE" ]; then
+    cp "${TEMPLATE_DIR}/LICENSE" "$TARGET_DIR/"
+fi
+
+# 3. Copy Antigravity rules and OpenSpec directories
+mkdir -p "$TARGET_DIR/.agents/rules"
+cp -r "${TEMPLATE_DIR}/.agents/rules/"* "$TARGET_DIR/.agents/rules/"
+
+mkdir -p "$TARGET_DIR/openspec/specs" "$TARGET_DIR/openspec/changes"
+cp "${TEMPLATE_DIR}/openspec/config.yaml" "$TARGET_DIR/openspec/"
+cp -r "${TEMPLATE_DIR}/openspec/specs/"* "$TARGET_DIR/openspec/specs/"
+
+# 4. Copy GitHub Cloud Infrastructure
+mkdir -p "$TARGET_DIR/.github/workflows" "$TARGET_DIR/.devcontainer"
+cp -r "${TEMPLATE_DIR}/.github/workflows/"* "$TARGET_DIR/.github/workflows/"
+cp "${TEMPLATE_DIR}/.devcontainer/devcontainer.json" "$TARGET_DIR/.devcontainer/"
+
+# 5. Generate project-specific README.md
+cat << EOF > "$TARGET_DIR/README.md"
+# ${PROJECT_NAME}
+
+A containerized software engineering project powered by **Google Antigravity CLI (\`agy\`)** and **OpenSpec (\`@fission-ai/openspec\`)**.
+
+## Quick Start
+
+1. **Configure Environment:**
+   \`\`\`bash
+   cp .env.example .env
+   # Add your GEMINI_API_KEY if not mounting host ~/.gemini
+   \`\`\`
+
+2. **Build Sandbox Container:**
+   \`\`\`bash
+   make build
+   \`\`\`
+
+3. **Launch Antigravity CLI:**
+   \`\`\`bash
+   make agy
+   \`\`\`
+
+## Available Commands
+
+* \`make agy\`: Launch interactive Antigravity CLI inside the sandbox.
+* \`make agy-cmd PROMPT="explain codebase"\`: Run a single prompt headlessly.
+* \`make openspec ARGS="validate --all"\`: Run OpenSpec CLI within the container.
+* \`make validate\`: Validate all OpenSpec specifications.
+* \`make shell\`: Open an interactive shell inside the container.
+EOF
+
+# 6. Initialize Git Repository
+if [ "$INIT_GIT" = true ]; then
+    if [ ! -d "$TARGET_DIR/.git" ]; then
+        echo "==> Initializing Git repository..."
+        git -C "$TARGET_DIR" init -b main >/dev/null 2>&1 || git -C "$TARGET_DIR" init >/dev/null 2>&1
+        git -C "$TARGET_DIR" add .
+        git -C "$TARGET_DIR" commit -m "feat: initial commit from openspec-agy-docker template" >/dev/null 2>&1 || true
+        echo "✓ Git repository initialized with initial commit."
+    else
+        echo "ℹ Existing Git repository detected; skipped git init."
+    fi
+fi
+
+echo ""
+echo "==============================================================================="
+echo "🎉 Project '${PROJECT_NAME}' successfully created!"
+echo "==============================================================================="
+echo "Next steps:"
+echo "  cd \"$TARGET_PATH\""
+echo "  cp .env.example .env"
+echo "  make build"
+echo "  make agy"
+echo "==============================================================================="

@@ -1,0 +1,11 @@
+# OpenSpec Project Configuration
+schema: "1.0"
+tools:
+  - antigravity
+context:
+  language: en
+  framework: spec-driven-development
+  description: "Antigravity CLI containerized runtime with OpenSpec specification management."
+rules:
+  specs_dir: "openspec/specs"
+  changes_dir: "openspec/changes"

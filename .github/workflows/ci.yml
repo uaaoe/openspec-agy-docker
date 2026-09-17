@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-specs:
+    name: Validate OpenSpec Specifications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (20.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate OpenSpec specs & changes
+        run: |
+          npx --yes @fission-ai/openspec@latest validate --all --strict --no-interactive
+
+  verify-container-build:
+    name: Verify Container Build & Config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          docker compose -f docker-compose.yaml config
+
+      - name: Build Docker Container
+        run: |
+          UID=1001 GID=1001 docker compose -f docker-compose.yaml build
+
+  repo-hygiene:
+    name: Repository Secrets & Hygiene Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure .env is not tracked in Git
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "ERROR: .env file is tracked in git! Untrack it immediately." >&2
+            exit 1
+          fi
+
+      - name: Ensure .env.example exists
+        run: |
+          test -f .env.example || { echo "ERROR: .env.example is missing." >&2; exit 1; }

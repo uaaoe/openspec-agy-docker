@@ -1,0 +1,18 @@
+{
+  "name": "Antigravity & OpenSpec Sandbox",
+  "dockerComposeFile": "../docker-compose.yaml",
+  "service": "agy",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "remoteUser": "sandboxuser"
+}
