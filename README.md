@@ -1,6 +1,6 @@
 # OpenSpec Antigravity Docker Bootstrapper
 
-[![CI](https://github.com/your-org/openspec-agy-docker/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/openspec-agy-docker/actions/workflows/ci.yml)
+[![CI](https://github.com/uaaoe/openspec-agy-docker/actions/workflows/ci.yml/badge.svg)](https://github.com/uaaoe/openspec-agy-docker/actions/workflows/ci.yml)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-1.13+-green.svg)](https://github.com/Fission-AI/OpenSpec)
 [![Antigravity](https://img.shields.io/badge/Google-Antigravity%20CLI-purple.svg)](https://antigravity.google)
@@ -60,7 +60,7 @@ Install the `create-agy-project` bootstrapping CLI tool onto your host machine:
 
 ```bash
 # Clone this repository
-git clone https://github.com/your-org/openspec-agy-docker.git
+git clone https://github.com/uaaoe/openspec-agy-docker.git
 cd openspec-agy-docker
 
 # Install create-agy-project into ~/.local/bin
